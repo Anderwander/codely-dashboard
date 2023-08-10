@@ -1,35 +1,50 @@
 import { render, screen } from "@testing-library/react";
 
-import { githubApiResponses } from "../github_api_responses";
-import { GithubApiGithubRepositoryRepository } from "../src/infrastructure/GithubApiGithubRepositoryRepository";
+import { GitHubRepository } from "../src/domain/GitHubRepository";
 import { Dashboard } from "../src/sections/dashboard/Dashboard";
+import { GitHubApiGitHubRepositoryRepository } from "../src/infrastructure/GitHubApiGitHubRepositoryRepository";
 
-jest.mock("../src/infrastructure/GithubApiGithubRepositoryRepository");
+jest.mock("../src/infrastructure/GitHubApiGitHubRepositoryRepository.ts");
 const mockRepository =
-	GithubApiGithubRepositoryRepository as jest.Mock<GithubApiGithubRepositoryRepository>;
+	GitHubApiGitHubRepositoryRepository as jest.Mock<GitHubApiGitHubRepositoryRepository>;
 
 describe("Dashboard section", () => {
 	it("show all widgets", async () => {
+		const gitHubRepository: GitHubRepository = {
+			id: {
+				organization: "CodelyTv",
+				name: "dotly",
+			},
+			description: "🌚 Modular and easy to customize dotfiles framework",
+			url: "https://github.com/CodelyTV/dotly",
+			private: true,
+			forks: 132,
+			hasWorkflows: true,
+			isLastWorkflowSuccess: false,
+			stars: 4000,
+			issues: 12,
+			pullRequests: 1,
+			updatedAt: new Date(),
+			watchers: 134,
+		};
+
 		mockRepository.mockImplementationOnce(() => {
-			//mockImplementationOnce() es una función de Jest que permite reemplazar la implementación de una función por otra y eso quiere decir que cuando se llame a la función GithubApiGithubRepositoryRepository se va a ejecutar la función que se pasa como parámetro.
 			return {
-				// se retorna un objeto con la función search que retorna una promesa con el array de respuestas de la api
-				search: () => Promise.resolve(githubApiResponses),
-			} as unknown as GithubApiGithubRepositoryRepository;
+				search: () => Promise.resolve([gitHubRepository]),
+			} as unknown as GitHubApiGitHubRepositoryRepository;
 		});
 
-		render(<Dashboard />); // se renderiza el componente
+		render(<Dashboard />);
 
 		const title = await screen.findByRole("heading", {
-			// el "heading" es para buscar un elemento h1, h2, h3, etc
 			name: new RegExp("DevDash_", "i"),
 		});
 
-		const firstWidgetTitle = `${githubApiResponses[0].repositoryData.organization.login}/${githubApiResponses[0].repositoryData.name}`;
-		// en esta linea primero se obtiene el titulo del primer widget del array de respuestas de la api y luego se crea una expresión regular con el titulo para poder buscarlo en el dom
+		const firstWidgetTitle = `${gitHubRepository.id.organization}/${gitHubRepository.id.name}`;
 		const firstWidgetHeader = await screen.findByRole("heading", {
-			name: new RegExp(firstWidgetTitle, "i"), // en esta linea la "i" es para que la expresión regular sea case insensitive
+			name: new RegExp(firstWidgetTitle, "i"),
 		});
+
 		expect(title).toBeInTheDocument();
 		expect(firstWidgetHeader).toBeInTheDocument();
 	});
@@ -38,24 +53,38 @@ describe("Dashboard section", () => {
 		mockRepository.mockImplementationOnce(() => {
 			return {
 				search: () => Promise.resolve([]),
-			} as unknown as GithubApiGithubRepositoryRepository;
+			} as unknown as GitHubApiGitHubRepositoryRepository;
 		});
 
 		render(<Dashboard />);
-
 		const noResults = await screen.findByText(new RegExp("No hay widgets configurados", "i"));
 
 		expect(noResults).toBeInTheDocument();
 	});
 
 	it("show last modified date in human readable format", async () => {
-		const mockedResponse = [...githubApiResponses];
-		mockedResponse[0].repositoryData.updated_at = new Date().toISOString();
+		const gitHubRepository: GitHubRepository = {
+			id: {
+				organization: "CodelyTv",
+				name: "dotly",
+			},
+			description: "🌚 Modular and easy to customize dotfiles framework",
+			url: "https://github.com/CodelyTV/dotly",
+			private: true,
+			forks: 132,
+			hasWorkflows: true,
+			isLastWorkflowSuccess: false,
+			stars: 4000,
+			issues: 12,
+			pullRequests: 1,
+			updatedAt: new Date(),
+			watchers: 134,
+		};
 
 		mockRepository.mockImplementationOnce(() => {
 			return {
-				search: () => Promise.resolve(githubApiResponses),
-			} as unknown as GithubApiGithubRepositoryRepository;
+				search: () => Promise.resolve([gitHubRepository]),
+			} as unknown as GitHubApiGitHubRepositoryRepository;
 		});
 
 		render(<Dashboard />);
