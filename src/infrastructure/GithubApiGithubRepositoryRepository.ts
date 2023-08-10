@@ -1,4 +1,4 @@
-import { CiStatus, GithubApiResponses, PullRequest, RepositoryData } from "./GithubApiResponse";
+import { CiStatus, GitHubApiResponses, PullRequest, RepositoryData } from "./GithubApiResponse";
 
 interface RepositoryId {
 	// esto significa que el objeto RepositoryId tiene dos propiedades, name y organization, ambas de tipo string e interface sirve para definir un tipo de dato.
@@ -17,16 +17,16 @@ export class GithubApiGithubRepositoryRepository {
 
 	constructor(private readonly personalAccessToken: string) {} // aquí constructor es un método especial que se ejecuta cuando se crea una instancia de la clase, en este caso recibe un parámetro de tipo string y lo asigna a la propiedad personalAccessToken
 
-	async search(repositoryUrls: string[]): Promise<GithubApiResponses[]> {
-		// aquí async significa que la función es asíncrona y devuelve una promesa de tipo GithubApiResponses
+	async search(repositoryUrls: string[]): Promise<GitHubApiResponses[]> {
+		// aquí async significa que la función es asíncrona y devuelve una promesa de tipo GitHubApiResponses
 		const responsePromises = repositoryUrls
 			.map((url) => this.urlToId(url)) // este map recorre el array repositoryUrls y por cada elemento ejecuta el método urlToId que a su vez devuelve un objeto de tipo RepositoryId con las propiedades name y organization
-			.map((id) => this.searchBy(id)); // este map recorre el array que devuelve el map anterior y por cada elemento ejecuta el método searchBy que a su vez devuelve un objeto de tipo GithubApiResponses
+			.map((id) => this.searchBy(id)); // este map recorre el array que devuelve el map anterior y por cada elemento ejecuta el método searchBy que a su vez devuelve un objeto de tipo GitHubApiResponses
 
 		return Promise.all(responsePromises); // aquí Promise.all() devuelve una promesa que se resuelve cuando todas las promesas del array que recibe como parámetro se han resuelto
 	}
 
-	private async searchBy(repositoryId: RepositoryId): Promise<GithubApiResponses> {
+	private async searchBy(repositoryId: RepositoryId): Promise<GitHubApiResponses> {
 		const repositoryRequests = this.endpoints // aquí se ejecuta el método urlToId que a su vez devuelve un objeto de tipo RepositoryId con las propiedades name y organization
 			.map((endpoint) => endpoint.replace("$organization", repositoryId.organization)) // aquí el map recorre el array this.endpoints y por cada elemento ejecuta el método replace que reemplaza el string "$organization" por el valor de la propiedad organization del objeto repositoryId
 			.map((endpoint) => endpoint.replace("$name", repositoryId.name))

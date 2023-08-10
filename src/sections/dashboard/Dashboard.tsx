@@ -13,8 +13,8 @@ import { ReactComponent as Start } from "./star.svg";
 import { ReactComponent as PullRequests } from "./git-pull-request.svg";
 import { ReactComponent as IssueOpened } from "./issue-opened.svg";
 import { GithubApiGithubRepositoryRepository } from "../../infrastructure/GithubApiGithubRepositoryRepository";
-import { use } from "chai";
 import { GithubApiResponses } from "../../infrastructure/GithubApiResponse";
+import { act } from "@testing-library/react";
 
 const isoToReadableDate = (lastUpdate: string): string => {
 	const lastUpdateDate = new Date(lastUpdate);
@@ -33,22 +33,21 @@ const isoToReadableDate = (lastUpdate: string): string => {
 	return `${diffDays} days ago`;
 };
 
-const repository = new GithubApiGithubRepositoryRepository(config.github_access_token);
-
 export function Dashboard() {
-	const [githubApiResponses, setGithubApiResponses] = useState<GithubApiResponses[]>([]);
-
-	useEffect(() => {
-		// se ejecuta una vez cuando se renderiza el componente
-		repository
-			.search(
-				config.widgets.map((widget) => widget.repository_url) // se mapea el array de widgets para obtener la url de cada uno
-			)
-			.then((responses) => {
-				setGithubApiResponses(responses);
-			}); // se setea el estado con las respuestas de la api
-	}, []); // se repite la llamada a la api cada vez que se renderiza el componente
-
+	const repository = new GithubApiGithubRepositoryRepository(config.github_access_token);
+	const [repositoryData, setRepositoryData] = useState<GithubApiResponses[]>([]);
+	act(() => {
+		useEffect(() => {
+			// se ejecuta una vez cuando se renderiza el componente
+			repository
+				.search(
+					config.widgets.map((widget) => widget.repository_url) // se mapea el array de widgets para obtener la url de cada uno
+				)
+				.then((responses) => {
+					setRepositoryData(responses);
+				}); // se setea el estado con las respuestas de la api
+		}, []); // se repite la llamada a la api cada vez que se renderiza el componente
+	});
 	return (
 		<React.Fragment>
 			<header className={styles.header}>
@@ -57,61 +56,69 @@ export function Dashboard() {
 					<h1 className={styles.app__brand}>DevDash_</h1>
 				</section>
 			</header>
-			<section className={styles.container}>
-				{githubApiResponses.map((widget) => (
-					<article className={styles.widget} key={widget.repositoryData.id}>
-						<header className={styles.widget__header}>
-							<a
-								className={styles.widget__title}
-								href={widget.repositoryData.html_url}
-								title={`${widget.repositoryData.organization.login}/${widget.repositoryData.name}`}
-								target="_blank"
-								rel="noreferrer"
-							>
-								{widget.repositoryData.organization.login}/{widget.repositoryData.name}
-							</a>
-							{widget.repositoryData.private ? <Lock /> : <Unlock />}
-						</header>
-						<div className={styles.widget__body}>
-							<div className={styles.widget__status}>
-								<p>Last update {isoToReadableDate(widget.repositoryData.updated_at)}</p>
-								{widget.ciStatus.workflow_runs.length > 0 && (
-									<div>
-										{widget.ciStatus.workflow_runs[0].status === "completed" ? (
-											<Check />
-										) : (
-											<Error />
-										)}
-									</div>
-								)}
+			{repositoryData.length === 0 ? (
+				<div className={styles.empty}>
+					<span>No hay widgets configurados.</span>
+				</div>
+			) : (
+				<section className={styles.container}>
+					{repositoryData.map((widget) => (
+						<article className={styles.widget} key={widget.repositoryData.id}>
+							<header className={styles.widget__header}>
+								<h2 className={styles.widget__title}>
+									<a
+										className={styles.widget__title}
+										href={widget.repositoryData.html_url}
+										title={`${widget.repositoryData.organization.login}/${widget.repositoryData.name}`}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{widget.repositoryData.organization.login}/{widget.repositoryData.name}
+									</a>
+								</h2>
+								{widget.repositoryData.private ? <Lock /> : <Unlock />}
+							</header>
+							<div className={styles.widget__body}>
+								<div className={styles.widget__status}>
+									<p>Last update {isoToReadableDate(widget.repositoryData.updated_at)}</p>
+									{widget.ciStatus.workflow_runs.length > 0 && (
+										<div>
+											{widget.ciStatus.workflow_runs[0].status === "completed" ? (
+												<Check />
+											) : (
+												<Error />
+											)}
+										</div>
+									)}
+								</div>
+								<p className={styles.widget__description}>{widget.repositoryData.description}</p>
 							</div>
-							<p className={styles.widget__description}>{widget.repositoryData.description}</p>
-						</div>
-						<footer className={styles.widget__footer}>
-							<div className={styles.widget__stat}>
-								<Start />
-								<span>{widget.repositoryData.stargazers_count}</span>
-							</div>
-							<div className={styles.widget__stat}>
-								<Watchers />
-								<span>{widget.repositoryData.watchers_count}</span>
-							</div>
-							<div className={styles.widget__stat}>
-								<Forks />
-								<span>{widget.repositoryData.forks_count}</span>
-							</div>
-							<div className={styles.widget__stat}>
-								<IssueOpened />
-								<span>{widget.repositoryData.open_issues_count}</span>
-							</div>
-							<div className={styles.widget__stat}>
-								<PullRequests />
-								<span>{widget.pullRequests.length}</span>
-							</div>
-						</footer>
-					</article>
-				))}
-			</section>
+							<footer className={styles.widget__footer}>
+								<div className={styles.widget__stat}>
+									<Start />
+									<span>{widget.repositoryData.stargazers_count}</span>
+								</div>
+								<div className={styles.widget__stat}>
+									<Watchers />
+									<span>{widget.repositoryData.watchers_count}</span>
+								</div>
+								<div className={styles.widget__stat}>
+									<Forks />
+									<span>{widget.repositoryData.forks_count}</span>
+								</div>
+								<div className={styles.widget__stat}>
+									<IssueOpened />
+									<span>{widget.repositoryData.open_issues_count}</span>
+								</div>
+								<div className={styles.widget__stat}>
+									<PullRequests />
+									<span>{widget.pullRequests.length}</span>
+								</div>
+							</footer>
+						</article>
+					))}
+				</section>
+			)}
 		</React.Fragment>
 	);
 }
