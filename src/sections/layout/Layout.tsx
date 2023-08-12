@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 
 import { ReactComponent as Brand } from "./brand.svg";
 import styles from "./Layout.module.scss";
+import { ErrorBoundary } from "./ErrorBaundary";
 
 export function Layout() {
 	return (
@@ -12,7 +13,9 @@ export function Layout() {
 					<h1 className={styles.app__brand}>DevDash_</h1>
 				</section>
 			</header>
-			<Outlet />
+			<ErrorBoundary>
+				<Outlet />
+			</ErrorBoundary>
 		</>
 	);
 }

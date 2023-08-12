@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+
 import { GitHubRepository } from "../src/domain/GitHubRepository";
 
 export class GitHubRepositoryMother {
@@ -6,19 +7,19 @@ export class GitHubRepositoryMother {
 		const defaultParams: GitHubRepository = {
 			id: {
 				organization: faker.company.name(),
-				name: faker.lorem.word(),
+				name: faker.random.word(),
 			},
-			description: faker.lorem.words(10),
+			description: faker.random.words(10),
 			url: faker.internet.url(),
 			private: faker.datatype.boolean(),
-			forks: faker.number.int(),
+			forks: faker.datatype.number(),
 			hasWorkflows: faker.datatype.boolean(),
 			isLastWorkflowSuccess: faker.datatype.boolean(),
-			stars: faker.number.int(),
-			issues: faker.number.int(),
-			pullRequests: faker.number.int(),
-			updatedAt: faker.date.anytime(),
-			watchers: faker.number.int(),
+			stars: faker.datatype.number(),
+			issues: faker.datatype.number(),
+			pullRequests: faker.datatype.number(),
+			updatedAt: faker.datatype.datetime(),
+			watchers: faker.datatype.number(),
 			...params,
 		};
 
