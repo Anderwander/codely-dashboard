@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-
+import { AddWidgetForm } from "./AddWidgetForm";
 import { config } from "../../devdash-config";
 import { GitHubRepositoryRepository } from "../../domain/GitHubRepositoryRepository";
 import styles from "./Dashboard.module.scss";
@@ -34,6 +34,7 @@ export function Dashboard({ repository }: { repository: GitHubRepositoryReposito
 							repository={repository}
 						/>
 					))}
+					<AddWidgetForm />
 				</section>
 			)}
 		</>
