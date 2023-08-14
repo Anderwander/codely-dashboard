@@ -5,7 +5,7 @@ import { ReactComponent as Lock } from "../../assets/svgs/lock.svg";
 import { ReactComponent as Unlock } from "../../assets/svgs/unlock.svg";
 import { GitHubRepositoryRepository } from "../../domain/GitHubRepositoryRepository";
 import styles from "./GitHubRepositoryDetail.module.scss";
-import { useGitHubRepository } from "./useGitHubRepository";
+import { useGitHubRepository } from "./useGithubRepository";
 
 export function GitHubRepositoryDetail({ repository }: { repository: GitHubRepositoryRepository }) {
 	const { organization, name } = useParams() as { organization: string; name: string };

@@ -3,6 +3,7 @@
 }
 
 .header {
+	height: var(--header-height);
 	background-color: #1a2233;
 
 	&__container {
@@ -12,5 +13,14 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 1rem;
+
+		& a {
+			text-decoration: none;
+		}
+	}
+
+	.app__brand {
+		color: #3cff64;
+		font-style: italic;
 	}
 }
