@@ -14,6 +14,7 @@ export default defineConfig((configEnv) => {
 				},
 			}),
 		],
+		define: { "process.env": process.env },
 		css: {
 			modules: {
 				generateScopedName: isDevelopment ? "[name]__[local]__[hash:base64:5]" : "[hash:base64:5]",

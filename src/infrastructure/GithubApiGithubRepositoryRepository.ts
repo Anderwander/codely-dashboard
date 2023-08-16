@@ -1,51 +1,75 @@
-import { CiStatus, GithubApiResponses, PullRequest, RepositoryData } from "./GithubApiResponse";
+import { GitHubRepository, RepositoryId } from "../domain/GitHubRepository";
+import { GitHubRepositoryRepository } from "../domain/GitHubRepositoryRepository";
+import { CiStatus, PullRequest, RepositoryData } from "./GitHubApiResponse";
 
-interface RepositoryId {
-	// esto significa que el objeto RepositoryId tiene dos propiedades, name y organization, ambas de tipo string e interface sirve para definir un tipo de dato.
-	organization: string;
-	name: string;
-}
-
-export class GithubApiGithubRepositoryRepository {
-	// esta clase es la que se encarga de hacer las llamadas a la API de Github
+export class GitHubApiGitHubRepositoryRepository implements GitHubRepositoryRepository {
 	private readonly endpoints = [
-		// aquí private significa que solo se puede acceder a esta propiedad desde dentro de la clase, readonly significa que no se puede modificar el valor de esta propiedad
 		"https://api.github.com/repos/$organization/$name",
 		"https://api.github.com/repos/$organization/$name/pulls",
-		"https://api.github.com/repos/$organization/$name/actions/runs?page=1per_page=1",
+		"https://api.github.com/repos/$organization/$name/actions/runs?page=1&per_page=10",
 	];
 
-	constructor(private readonly personalAccessToken: string) {} // aquí constructor es un método especial que se ejecuta cuando se crea una instancia de la clase, en este caso recibe un parámetro de tipo string y lo asigna a la propiedad personalAccessToken
+	constructor(private readonly personalAccessToken: string) {}
 
-	async search(repositoryUrls: string[]): Promise<GithubApiResponses[]> {
-		// aquí async significa que la función es asíncrona y devuelve una promesa de tipo GithubApiResponses
+	async search(repositoryUrls: string[]): Promise<GitHubRepository[]> {
 		const responsePromises = repositoryUrls
-			.map((url) => this.urlToId(url)) // este map recorre el array repositoryUrls y por cada elemento ejecuta el método urlToId que a su vez devuelve un objeto de tipo RepositoryId con las propiedades name y organization
-			.map((id) => this.searchBy(id)); // este map recorre el array que devuelve el map anterior y por cada elemento ejecuta el método searchBy que a su vez devuelve un objeto de tipo GithubApiResponses
+			.map((url) => this.urlToId(url))
+			.map((id) => this.searchBy(id));
 
-		return Promise.all(responsePromises); // aquí Promise.all() devuelve una promesa que se resuelve cuando todas las promesas del array que recibe como parámetro se han resuelto
+		return Promise.all(responsePromises);
 	}
 
-	private async searchBy(repositoryId: RepositoryId): Promise<GithubApiResponses> {
-		const repositoryRequests = this.endpoints // aquí se ejecuta el método urlToId que a su vez devuelve un objeto de tipo RepositoryId con las propiedades name y organization
-			.map((endpoint) => endpoint.replace("$organization", repositoryId.organization)) // aquí el map recorre el array this.endpoints y por cada elemento ejecuta el método replace que reemplaza el string "$organization" por el valor de la propiedad organization del objeto repositoryId
+	async byId(repositoryId: RepositoryId): Promise<GitHubRepository | undefined> {
+		return this.searchBy(repositoryId);
+	}
+
+	private async searchBy(repositoryId: RepositoryId): Promise<GitHubRepository> {
+		const repositoryRequests = this.endpoints
+			.map((endpoint) => endpoint.replace("$organization", repositoryId.organization))
 			.map((endpoint) => endpoint.replace("$name", repositoryId.name))
 			.map((url) =>
 				fetch(url, {
-					headers: {
-						Authorization: `Bearer ${this.personalAccessToken}`, // aquí se añade el token de acceso personal a la cabecera de la petición
-					},
+					headers: { Authorization: `Bearer ${this.personalAccessToken}` },
 				})
 			);
 
-		return Promise.all(repositoryRequests) // aquí Promise.all() devuelve una promesa que se resuelve cuando todas las promesas del array que recibe como parámetro se han resuelto
-			.then((responses) => Promise.all(responses.map((response) => response.json()))) // aquí se ejecuta el método json() de cada respuesta del array responses y devuelve una promesa que se resuelve cuando todas las promesas del array que recibe como parámetro se han resuelto
-			.then(([repositoryData, pullRequests, ciStatus]) => {
-				// aquí se desestructura el array que devuelve el método json() y se asigna cada elemento a una variable
+		return Promise.all(repositoryRequests)
+			.then((responses) => Promise.all(responses.map((response) => response.json())))
+			.then((responses) => {
+				const [repositoryData, pullRequests, ciStatus] = responses as [
+					RepositoryData,
+					PullRequest[],
+					CiStatus
+				];
+
 				return {
-					repositoryData: repositoryData as RepositoryData,
-					pullRequests: pullRequests as PullRequest[],
-					ciStatus: ciStatus as CiStatus,
+					id: {
+						name: repositoryData.name,
+						organization: repositoryData.organization.login,
+					},
+					url: repositoryData.html_url,
+					description: repositoryData.description,
+					private: repositoryData.private,
+					updatedAt: new Date(repositoryData.updated_at),
+					hasWorkflows: ciStatus.workflow_runs.length > 0,
+					isLastWorkflowSuccess:
+						ciStatus.workflow_runs.length > 0 &&
+						ciStatus.workflow_runs[0].status === "completed" &&
+						ciStatus.workflow_runs[0].conclusion === "sucess",
+					stars: repositoryData.stargazers_count,
+					watchers: repositoryData.watchers_count,
+					forks: repositoryData.forks_count,
+					issues: repositoryData.open_issues_count,
+					pullRequests: pullRequests.length,
+					workflowRunsStatus: ciStatus.workflow_runs.map((run) => ({
+						id: run.id,
+						name: run.name,
+						title: run.display_title,
+						url: run.html_url,
+						createdAt: new Date(run.created_at),
+						status: run.status,
+						conclusion: run.conclusion,
+					})),
 				};
 			});
 	}
@@ -54,7 +78,7 @@ export class GithubApiGithubRepositoryRepository {
 		const splitUrl = url.split("/");
 
 		return {
-			name: splitUrl.pop() as string, // aquí pop() es un método que elimina el último elemento de un array y lo devuelve, en este caso devuelve el nombre del repositorio
+			name: splitUrl.pop() as string,
 			organization: splitUrl.pop() as string,
 		};
 	}
