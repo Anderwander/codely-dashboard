@@ -1,6 +1,6 @@
 import { GitHubRepository, RepositoryId } from "../domain/GitHubRepository";
 import { GitHubRepositoryRepository } from "../domain/GitHubRepositoryRepository";
-import { CiStatus, PullRequest, RepositoryData } from "./GitHubApiResponse";
+import { CiStatus, PullRequest, RepositoryData } from "./GithubApiResponse";
 
 export class GitHubApiGitHubRepositoryRepository implements GitHubRepositoryRepository {
 	private readonly endpoints = [
