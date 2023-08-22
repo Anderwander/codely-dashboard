@@ -13,6 +13,7 @@ export function useAddRepositoryWidget(repository: RepositoryWidgetRepository): 
 		}
 
 		await repository.save(widget);
+		document.dispatchEvent(new CustomEvent("repositoryWidgetAdded"));
 	}
 
 	return { save };

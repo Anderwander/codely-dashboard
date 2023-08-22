@@ -27,6 +27,9 @@ describe("AddWidgetForm", () => {
 	});
 
 	it("save new widget when form is submitted", async () => {
+		const dispatchEventSpy = jest.spyOn(document, "dispatchEvent");
+		mockRepository.search.mockResolvedValue([]);
+
 		const newWidget: RepositoryWidget = {
 			id: "newWidgetId",
 			repositoryUrl: "https://github.com/CodelyTV/DevDash",
@@ -63,6 +66,9 @@ describe("AddWidgetForm", () => {
 
 		expect(addAnotherRepositoryFormButton).toBeInTheDocument();
 		expect(mockRepository.save).toHaveBeenCalledWith(newWidget);
+
+		expect(dispatchEventSpy).toHaveBeenCalledWith(expect.any(Event));
+		expect(dispatchEventSpy.mock.calls[0][0].type).toBe("repositoryWidgetAdded");
 		mockRepository.save.mockReset();
 	});
 
