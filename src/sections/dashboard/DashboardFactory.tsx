@@ -1,12 +1,25 @@
-import React from "react";
-import { config } from "../../devdash-config";
-import { GitHubApiGitHubRepositoryRepository } from "../../infrastructure/GitHubApiGitHubRepositoryRepository";
+import { GitHubApiGitHubRepositoryRepository } from "../../infrastructure/GithubApiGithubRepositoryRepository";
+import { LocalStorageGitHubAccessTokenRepository } from "../../infrastructure/LocalStorageGithubAccessTokenRepository";
+import { LocalStorageRepositoryWidgetRepository } from "../../infrastructure/LocalStorageWidgetRepository";
+import { GitHubAccessTokenSearcher } from "../config/GithubAccessTokenSearcher";
 import { Dashboard } from "./Dashboard";
+import { useRepositoryWidgetContext } from "./repositoryWidget/RepositoryWidgetContextProvider";
 
-const repository = new GitHubApiGitHubRepositoryRepository(config.github_access_token);
+const ghAccessTokenRepository = new LocalStorageGitHubAccessTokenRepository();
+const ghAccessTokenSearcher = new GitHubAccessTokenSearcher(ghAccessTokenRepository);
+const gitHubRepositoryRepository = new GitHubApiGitHubRepositoryRepository(
+	ghAccessTokenSearcher.search()
+);
+const repositoryWidgetRepository = new LocalStorageRepositoryWidgetRepository();
 
-export class DashboardFactory {
-	static create(): React.ReactElement {
-		return <Dashboard repository={repository} />;
-	}
+export function DashboardFactory() {
+	const { repositoryWidgets } = useRepositoryWidgetContext();
+
+	return (
+		<Dashboard
+			gitHubRepositoryRepository={gitHubRepositoryRepository}
+			repositoryWidgetRepository={repositoryWidgetRepository}
+			repositoryWidgets={repositoryWidgets}
+		/>
+	);
 }

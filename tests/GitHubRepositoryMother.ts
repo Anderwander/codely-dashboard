@@ -7,19 +7,19 @@ export class GitHubRepositoryMother {
 		const defaultParams: GitHubRepository = {
 			id: {
 				organization: faker.company.name(),
-				name: faker.random.word(),
+				name: faker.lorem.words(),
 			},
-			description: faker.random.words(10),
+			description: faker.lorem.words(10),
 			url: faker.internet.url(),
 			private: faker.datatype.boolean(),
-			forks: faker.datatype.number(),
+			forks: faker.number.int(),
 			hasWorkflows: faker.datatype.boolean(),
 			isLastWorkflowSuccess: faker.datatype.boolean(),
-			stars: faker.datatype.number(),
-			issues: faker.datatype.number(),
-			pullRequests: faker.datatype.number(),
-			updatedAt: faker.datatype.datetime(),
-			watchers: faker.datatype.number(),
+			stars: faker.number.int(),
+			issues: faker.number.int(),
+			pullRequests: faker.number.int(),
+			updatedAt: faker.date.anytime(),
+			watchers: faker.number.int(),
 			...params,
 		};
 
