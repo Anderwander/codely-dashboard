@@ -2,13 +2,16 @@ import { Component, ErrorInfo, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 export class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-	state = { hasError: false };
+	state = {
+		hasError: false,
+	};
 
 	public static getDerivedStateFromError(_: Error) {
 		return { hasError: true };
 	}
 
 	public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+		// You can also log the error to an error reporting service
 		console.error("Uncaught error:", error, errorInfo);
 	}
 
@@ -19,12 +22,12 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { hasError
 	render() {
 		if (this.state.hasError) {
 			return (
-				<div>
-					<h1>Something went wrong.</h1>
-					<Link to="/" onClick={() => this.resetError()}>
-						Go back to home
+				<>
+					<h2>Something went wrong.</h2>
+					<Link onClick={this.resetError} to={"/"}>
+						Return to home
 					</Link>
-				</div>
+				</>
 			);
 		}
 

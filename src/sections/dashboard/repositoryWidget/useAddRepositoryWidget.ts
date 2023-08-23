@@ -1,6 +1,7 @@
+import { DomainEvents } from "../../../domain/DomainEvents";
+import { RepositoryAlreadyExistsError } from "../../../domain/RepositoryAlreadyExistsError";
 import { RepositoryWidget } from "../../../domain/RepositoryWidget";
 import { RepositoryWidgetRepository } from "../../../domain/RepositoryWidgetRepository";
-import { RepositoryAlreadyExistsError } from "../../../domain/RepositoryAlreadyExistsError";
 
 export function useAddRepositoryWidget(repository: RepositoryWidgetRepository): {
 	save: (widget: RepositoryWidget) => Promise<RepositoryAlreadyExistsError | void>;
@@ -13,7 +14,7 @@ export function useAddRepositoryWidget(repository: RepositoryWidgetRepository): 
 		}
 
 		await repository.save(widget);
-		document.dispatchEvent(new CustomEvent("repositoryWidgetAdded"));
+		document.dispatchEvent(new CustomEvent(DomainEvents.repositoryWidgetAdded));
 	}
 
 	return { save };
